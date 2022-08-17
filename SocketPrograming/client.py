@@ -10,8 +10,24 @@ def client():
     #msg = client_socket.recv(1024).decode()
     #print(msg)
     opt = input("Enter your choice: ")
-    client_socket.send(opt.encode())
-    
+    while True:
+        if(opt == '1'):
+            msg = client_socket.recv(1024).decode()
+            print(msg)
+        if(opt == '2'):
+            print("Enter Name:")
+            name = input()
+            print("enter phone number:")
+            phone_number = input()
+            client_socket.send('''{
+            'opt':'2',
+            'name':'{}',
+            'phone_number':'{}'
+            }'''.format(name,phone_number).encode())
+            msg = client_socket.recv(1024).decode()
+        
+
+
 
 
 client()
