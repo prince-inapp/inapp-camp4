@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatInator</title>
+    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"> -->
+</head>
+<body>
+    <table>
+        <thead>
+            <tr>
+                <th>name</th>
+                <th>message</th>
+            </tr>
+        </thead>
+        <tbody id="chatlist"></tbody>
+    </table>
+
+    <input type="text" id="txtMsg">
+    <button onclick="send()">Send</button>
+
+    <script>
+        var name = 'prince'
+        function send() {
+            const msgBox = document.getElementById('txtMsg');
+            if (msgBox.value === ''){
+                return
+            }
+            
+            var request = new XMLHttpRequest()
+            request.open('POST', 'http://192.168.5.161:3002/chats')
+            request.setRequestHeader('Content-type', 'application/json')
+            request.send(JSON.stringify({
+                name: name,
+                message: msgBox.value
+            }))
+
+            msgBox.value = ''
+
+            request.onload = loadChats
+        }
+
+        function loadChats() {
+            var request = new XMLHttpRequest()
+            request.open('GET', 'http://192.168.5.161:3002/chats')
+            request.send();
+            request.onload = () => {
+                if(request.status === 200){
+                    const chats = JSON.parse(request.response);
+                    tbody = document.getElementById('chatlist')
+                    tbody.innerHTML = ''
+                    chats.forEach(chat => {
+                        const row = document.createElement('tr')
+                        const name = document.createElement('td');
+                        const message = document.createElement('td');
+                        
+                        name.innerText = chat.name;
+                        message.innerText = chat.message;
+                        row.appendChild(name)
+                        row.appendChild(message)
+                        tbody.appendChild(row)
+                    });
+                }else{
+                    console.log('Cannot contact server');
+                }
+            }
+        }
+
+        window.setInterval(loadChats, 1000);
+
+    </script>
+</body>
+</html>

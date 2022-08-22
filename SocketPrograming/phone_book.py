@@ -2,6 +2,7 @@ from ast import match_case
 import socket
 import json
 
+
 def display():
     return ''' 
     MENU :   
