@@ -1,9 +1,11 @@
-from flask import Flask
+from flask import Flask, jsonify, request, abort
 import pyodbc
 
 conString = 'Driver={SQL Server};Server=DESKTOP-CKLRF1B\SQLEXPRESS;Database=PhoneBook;Truseted_Connection=yes;'
 
 phoneBook = []
+
+app = Flask(__name__)
 
 def displayOptions():
     print('''
@@ -39,7 +41,8 @@ else:
     print("Table Exists")        
    
 
-try:
+@app.route('/contacts', methods=['GET'])
+def contacts():
     phoneBook = []
     conn = pyodbc.connect(conString)
     myCursor = conn.cursor()
@@ -52,6 +55,57 @@ try:
             'number': row[2]
         }
         phoneBook.append(contact)
-    print(phoneBook)
-except Exception as e:
-    print(e)
+    return jsonify({'phoneBook':phoneBook})
+
+@app.route('/contacts/<int:id>', methods=['GET'])
+def getContact(id):
+    conn = pyodbc.connect(conString)
+    myCursor = conn.cursor()
+    myCursor.execute('SELECT * FROM Contacts WHERE id = ?', id)
+    row = myCursor.fetchone()
+    if row is None:
+        return jsonify({'result':False})
+    contact = {
+        'id': row[0],
+        'name': row[1],
+        'number': row[2]
+    }
+    return jsonify({'contact':contact})
+
+@app.route('/contacts', methods=['POST'])
+def addContact():
+    if not request.json:
+        abort(400)
+    conn = pyodbc.connect(conString)
+    myCursor = conn.cursor()
+    myCursor.execute('INSERT INTO Contacts (Name, Number) VALUES (?, ?)', request.json['name'], request.json['number'])
+    conn.commit()
+    return jsonify({'result':True})
+
+@app.route('/contacts/<int:id>', methods=['PUT'])
+def updateContact(id):
+    conn = pyodbc.connect(conString)
+    myCursor = conn.cursor()
+    myCursor.execute('SELECT * FROM Contacts WHERE id = ?', id)
+    row = myCursor.fetchone()
+    if row is None:
+        return jsonify({'result':False})
+    myCursor.execute('UPDATE Contacts SET Name = ?, Number = ? WHERE id = ?', request.json['name'], request.json['number'], id)
+    conn.commit()
+    return jsonify({'result':True})
+
+@app.route('/contacts/<int:id>', methods=['DELETE'])
+def deleteContact(id):
+    conn = pyodbc.connect(conString)
+    myCursor = conn.cursor()
+    myCursor.execute('SELECT * FROM Contacts WHERE id = ?', id)
+    row = myCursor.fetchone()
+    if row is None:
+        return jsonify({'result':False})
+    myCursor.execute('DELETE FROM Contacts WHERE id = ?', id)
+    conn.commit()
+    return jsonify({'result':True})
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', debug=True)
+
