@@ -1,0 +1,12 @@
+<html>
+    <body>
+        <div class="">
+            <h1> Hello, {% if name %}{{name}}{% else %}Guest{% endif %}</h1>
+        </div>
+        <form method="POST">
+            {{form.hidden_tag()}}
+            {{form.name.label}} {{form.name() }}
+            {{form.submit()}}
+        </form>
+    </body>
+</html>
